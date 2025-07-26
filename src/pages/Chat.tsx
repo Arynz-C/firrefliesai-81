@@ -9,7 +9,7 @@ import { Menu, LogOut, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { searchAndFetchContent, getWebpageContent, calculator } from "@/utils/ragUtils";
+import { searchDuckDuckGo, getWebpageContent, calculator } from "@/utils/ragUtils";
 import { ModelSelector } from "@/components/chat/ModelSelector";
 import { useSelectedModel } from "@/contexts/ModelContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,30 +79,41 @@ export const Chat = () => {
   // Get current messages from chat history
   const messages = getCurrentChatMessages();
 
-  // Optimized RAG function using parallel search and fetch
+  // RAG function for search - downloads content from top 3 DuckDuckGo results
   const handleSearchRAG = async (query: string): Promise<string> => {
     try {
-      console.log('🚀 Starting optimized search for:', query);
+      console.log('🔍 Searching DuckDuckGo for:', query);
       
-      // Use the new optimized parallel function
-      const searchResults = await searchAndFetchContent(query);
+      // Search DuckDuckGo and get URLs
+      const searchUrls = await searchDuckDuckGo(query);
       
-      if (searchResults.length === 0) {
+      if (searchUrls.length === 0) {
         console.log('❌ No search results found');
         return '❌ Maaf, saya tidak menemukan hasil yang relevan di internet.';
       }
 
-      console.log(`📋 Found ${searchResults.length} results with content`);
+      console.log(`📋 Found ${searchUrls.length} URLs, downloading content...`);
       
       let combinedContent = '';
       let successfulSources: string[] = [];
 
-      // Process all results from parallel fetch
-      searchResults.forEach((result, i) => {
-        combinedContent += `\n--- WEBSITE ${i + 1}: ${result.url} ---\n${result.content}\n\n`;
-        successfulSources.push(result.url);
-        console.log(`✅ Content from: ${result.url} (${result.content.length} chars)`);
-      });
+      // Download content from top 3 websites
+      const topUrls = searchUrls.slice(0, 3);
+      
+      for (let i = 0; i < topUrls.length; i++) {
+        const url = topUrls[i];
+        console.log(`📥 Downloading content from: ${url}`);
+        
+        const content = await getWebpageContent(url);
+        
+        if (content && content.length > 50) {
+          combinedContent += `\n--- WEBSITE ${i + 1}: ${url} ---\n${content}\n\n`;
+          successfulSources.push(url);
+          console.log(`✅ Successfully downloaded content from: ${url} (${content.length} chars)`);
+        } else {
+          console.log(`❌ Failed to download content from: ${url}`);
+        }
+      }
 
       if (combinedContent === '') {
         return '❌ Maaf, tidak dapat mengunduh konten dari website yang ditemukan.';
@@ -169,20 +180,20 @@ export const Chat = () => {
     }
   };
 
-  // Optimized web scraping function - all client-side
+  // Function to handle web scraping with user question
   const handleWebRAG = async (query: string, url: string): Promise<string> => {
     try {
-      console.log('🌐 Starting optimized web scraping for:', url);
-      
-      // Use client-side web scraping
-      const webContent = await getWebpageContent(url);
+      // Use edge function for web scraping
+      const { data: webData, error: webError } = await supabase.functions.invoke('ollama-proxy', {
+        body: { prompt: query, url: url, action: 'web' }
+      });
 
-      if (!webContent || webContent.length < 50) {
+      if (webError || !webData?.content) {
         console.log('❌ Failed to extract web content');
         return '❌ Maaf, saya tidak dapat mengakses atau memproses konten dari URL tersebut.';
       }
 
-      console.log(`✅ Extracted ${webContent.length} characters from ${url}`);
+      const webContent = webData.content;
       
       // Create RAG prompt for web content analysis
       const ragPrompt = `Berdasarkan konten website berikut, jawab pertanyaan pengguna secara langsung dan detail. Jawab dalam Bahasa Indonesia.\n\n--- KONTEN WEBSITE ---\n${webContent}\n\n--- PERTANYAAN PENGGUNA ---\n${query}\n\nJawab berdasarkan konten website:`;

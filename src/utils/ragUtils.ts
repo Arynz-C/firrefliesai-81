@@ -5,252 +5,185 @@ export interface SearchResult {
   snippet: string;
 }
 
-// Optimized search function with better error handling
+// Function to search DuckDuckGo and get URLs
 export async function searchDuckDuckGo(query: string): Promise<string[]> {
   try {
-    console.log('🔍 Starting optimized search for:', query);
-    
-    // Use faster proxy service with timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-    
+    console.log('🔍 Starting search for:', query);
+    const proxyUrl = 'https://api.allorigins.win/get?url=';
     const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
+    const fullUrl = proxyUrl + encodeURIComponent(searchUrl);
     
-    const response = await fetch(proxyUrl, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
-    
-    clearTimeout(timeoutId);
-    
-    if (!response.ok) {
-      throw new Error(`Search failed: ${response.status}`);
-    }
-    
+    console.log('🌐 Fetching from URL:', fullUrl);
+    const response = await fetch(fullUrl);
+    console.log('📡 Response status:', response.status);
     const data = await response.json();
-    if (!data.contents) {
-      console.warn('No content received from search');
-      return [];
-    }
+    console.log('📄 Data received:', !!data.contents);
+    const html = data.contents;
     
-    // Optimized HTML parsing
+    // Parse HTML using DOM parser
     const parser = new DOMParser();
-    const doc = parser.parseFromString(data.contents, 'text/html');
+    const doc = parser.parseFromString(html, 'text/html');
     
     const results: string[] = [];
-    const resultElements = doc.querySelectorAll('div.result, .result, [class*="result"]');
+    const resultElements = doc.querySelectorAll('div.result');
     
-    for (const element of resultElements) {
-      const linkElement = element.querySelector('a[href]');
+    resultElements.forEach((element) => {
+      const linkElement = element.querySelector('a.result__a');
       if (linkElement) {
         const href = linkElement.getAttribute('href');
-        if (href && href.includes('uddg=')) {
+        if (href) {
           try {
             const url = new URL(href, 'https://duckduckgo.com');
             const realUrl = url.searchParams.get('uddg');
-            if (realUrl && isValidUrl(realUrl)) {
+            if (realUrl) {
               results.push(decodeURIComponent(realUrl));
-              if (results.length >= 3) break; // Stop at 3 results
             }
           } catch (e) {
-            continue;
+            // Skip invalid URLs
           }
         }
       }
-    }
+    });
     
-    console.log(`🔗 Found ${results.length} URLs:`, results);
-    return results;
+    console.log('🔗 Found URLs:', results);
+    return results.slice(0, 3); // Return top 3 results
   } catch (error) {
-    console.error('❌ Search error:', error);
+    console.error('❌ Error searching DuckDuckGo:', error);
     return [];
   }
 }
 
-// Helper function to validate URLs
-function isValidUrl(string: string): boolean {
-  try {
-    const url = new URL(string);
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch (_) {
-    return false;
-  }
-}
-
-// Optimized parallel content fetching
+// Function to get webpage content with better extraction
 export async function getWebpageContent(url: string): Promise<string | null> {
   try {
-    console.log(`🌐 Fetching optimized content from: ${url}`);
+    console.log(`🌐 Fetching content from: ${url}`);
     
-    // Timeout controller for faster failures
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    // Try multiple proxy services for better reliability
+    const proxyServices = [
+      'https://api.allorigins.win/get?url=',
+      'https://cors-anywhere.herokuapp.com/',
+      'https://api.codetabs.com/v1/proxy?quest='
+    ];
     
-    try {
-      // Use only the fastest, most reliable proxy
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-      
-      const response = await fetch(proxyUrl, {
-        signal: controller.signal,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    let html = '';
+    let success = false;
+    
+    for (const proxyUrl of proxyServices) {
+      try {
+        const fullUrl = proxyUrl + encodeURIComponent(url);
+        console.log(`🔄 Trying proxy: ${proxyUrl}`);
+        
+        const response = await fetch(fullUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          }
+        });
+        
+        if (response.ok) {
+          if (proxyUrl.includes('allorigins')) {
+            const data = await response.json();
+            html = data.contents;
+          } else {
+            html = await response.text();
+          }
+          
+          if (html && html.length > 100) {
+            success = true;
+            console.log(`✅ Successfully fetched ${html.length} characters`);
+            break;
+          }
         }
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      } catch (proxyError) {
+        console.log(`❌ Proxy failed: ${proxyUrl}`, proxyError.message);
+        continue;
       }
-      
-      const data = await response.json();
-      if (!data.contents || data.contents.length < 100) {
-        console.warn('Insufficient content received');
-        return null;
-      }
-      
-      console.log(`✅ Fetched ${data.contents.length} characters`);
-      return await extractOptimizedContent(data.contents);
-      
-    } catch (error) {
-      clearTimeout(timeoutId);
-      console.error(`❌ Content fetch failed for ${url}:`, error);
+    }
+    
+    if (!success || !html) {
+      console.log('❌ All proxies failed, returning null');
       return null;
     }
-  } catch (error) {
-    console.error(`❌ Failed to get content from ${url}:`, error);
-    return null;
-  }
-}
-
-// Optimized content extraction
-async function extractOptimizedContent(html: string): Promise<string | null> {
-  try {
-    // Parse HTML efficiently
+    
+    // Parse HTML and extract text content
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     
-    // Remove unwanted elements in batch
-    const unwantedSelectors = [
-      'script', 'style', 'nav', 'header', 'footer', 'aside',
-      '.sidebar', '.menu', '.advertisement', '.ads', '.cookie-notice',
-      '.social-share', '.comments', '.related-posts', '.newsletter'
-    ];
+    // Remove unwanted elements
+    const unwantedElements = doc.querySelectorAll('script, style, nav, header, footer, aside, .sidebar, .menu, .advertisement, .ads, .cookie-notice, .social-share');
+    unwantedElements.forEach(element => element.remove());
     
-    unwantedSelectors.forEach(selector => {
-      doc.querySelectorAll(selector).forEach(el => el.remove());
-    });
-    
+    // Try multiple content extraction strategies
     let content = '';
     
-    // Priority content selectors (most specific first)
-    const contentSelectors = [
-      'article[role="main"]',
-      'main article',
-      '[role="main"]',
+    // Strategy 1: Look for article content
+    const articleSelectors = [
       'article',
+      '[role="main"]',
       '.article-content',
       '.post-content',
       '.entry-content',
-      'main .content',
+      '.content',
       'main',
+      '.main-content',
       '#content',
       '.page-content'
     ];
     
-    // Find best content container
-    for (const selector of contentSelectors) {
+    for (const selector of articleSelectors) {
       const element = doc.querySelector(selector);
       if (element) {
-        const textContent = element.textContent || '';
-        if (textContent.length > 200) {
-          content = textContent;
-          console.log(`📄 Content found with: ${selector}`);
+        content = element.textContent || '';
+        if (content.length > 200) {
+          console.log(`📄 Found content using selector: ${selector}`);
           break;
         }
       }
     }
     
-    // Fallback: collect paragraph content
+    // Strategy 2: Look for paragraphs if no main content found
     if (!content || content.length < 200) {
-      const paragraphs = Array.from(doc.querySelectorAll('p'))
+      const paragraphs = doc.querySelectorAll('p');
+      const paragraphTexts = Array.from(paragraphs)
         .map(p => p.textContent?.trim())
-        .filter(text => text && text.length > 30)
-        .slice(0, 10); // Limit to first 10 paragraphs
+        .filter(text => text && text.length > 50);
       
-      content = paragraphs.join('\n\n');
-      console.log(`📄 Extracted ${paragraphs.length} paragraphs`);
+      if (paragraphTexts.length > 0) {
+        content = paragraphTexts.join('\n\n');
+        console.log(`📄 Extracted content from ${paragraphTexts.length} paragraphs`);
+      }
     }
     
-    if (!content || content.length < 50) {
-      return null;
+    // Strategy 3: Fallback to body content
+    if (!content || content.length < 100) {
+      content = doc.body?.textContent || '';
+      console.log('📄 Using body content as fallback');
     }
     
-    // Optimized content cleaning
+    // Clean up the content
     content = content
-      .replace(/\s+/g, ' ')  // Normalize whitespace
-      .replace(/\n\s*\n/g, '\n')  // Normalize newlines
+      .replace(/\s+/g, ' ')  // Replace multiple spaces with single space
+      .replace(/\n\s*\n/g, '\n')  // Replace multiple newlines with single newline
+      .replace(/[^\w\s\n.,;:!?()-]/g, ' ')  // Remove special characters but keep punctuation
       .trim();
     
-    // Filter out noise - optimized regex
-    const noisePatterns = [
-      /\b(cookie|privacy|terms|subscribe|newsletter|advertisement)\b/gi,
-      /\b(copyright|all rights reserved|©)\b/gi,
-      /\b(click here|read more|continue reading)\b/gi
-    ];
+    // Extract meaningful sentences (filter out navigation, copyright, etc.)
+    const sentences = content.split(/[.!?]+/).filter(sentence => {
+      const cleanSentence = sentence.trim().toLowerCase();
+      return cleanSentence.length > 20 && 
+             !cleanSentence.includes('cookie') &&
+             !cleanSentence.includes('copyright') &&
+             !cleanSentence.includes('privacy policy') &&
+             !cleanSentence.includes('terms of service') &&
+             !cleanSentence.includes('all rights reserved');
+    });
     
-    const sentences = content.split(/[.!?]+/)
-      .filter(sentence => {
-        const clean = sentence.trim();
-        return clean.length > 15 && 
-               !noisePatterns.some(pattern => pattern.test(clean));
-      })
-      .slice(0, 12); // Limit sentences
-    
-    const finalContent = sentences.join('. ').substring(0, 3000);
-    console.log(`📊 Optimized content: ${finalContent.length} chars`);
+    const finalContent = sentences.slice(0, 15).join('. ').substring(0, 4000);
+    console.log(`📊 Final content length: ${finalContent.length} characters`);
     
     return finalContent || null;
   } catch (error) {
-    console.error('❌ Content extraction error:', error);
+    console.error(`❌ Failed to get content from ${url}:`, error);
     return null;
-  }
-}
-
-// Parallel search and content fetching
-export async function searchAndFetchContent(query: string): Promise<{url: string, content: string}[]> {
-  try {
-    console.log('🚀 Starting parallel search and fetch for:', query);
-    
-    // Step 1: Search for URLs
-    const urls = await searchDuckDuckGo(query);
-    if (urls.length === 0) {
-      return [];
-    }
-    
-    // Step 2: Fetch content from all URLs in parallel
-    const contentPromises = urls.map(async (url) => {
-      const content = await getWebpageContent(url);
-      return content ? { url, content } : null;
-    });
-    
-    const results = await Promise.allSettled(contentPromises);
-    
-    const successfulResults = results
-      .filter((result): result is PromiseFulfilledResult<{url: string, content: string}> => 
-        result.status === 'fulfilled' && result.value !== null
-      )
-      .map(result => result.value);
-    
-    console.log(`✅ Successfully fetched content from ${successfulResults.length}/${urls.length} URLs`);
-    return successfulResults;
-    
-  } catch (error) {
-    console.error('❌ Parallel search error:', error);
-    return [];
   }
 }
 
