@@ -1,1 +1,10 @@
 project_id = "cdxybmnpkkdkspgxvnfp"
+
+[functions.ollama-proxy]
+verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = false
+
+[functions.create-whatsapp-payment]
+verify_jwt = false
