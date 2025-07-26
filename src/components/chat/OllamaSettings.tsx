@@ -15,7 +15,7 @@ import { Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const OLLAMA_URL_KEY = 'ollama_base_url';
-const DEFAULT_OLLAMA_URL = 'https://super-adventure-6w5wvrqxvg4fxv6-11434.app.github.dev';
+const DEFAULT_OLLAMA_URL = 'http://170.64.163.129:11434';
 
 export const useOllamaUrl = () => {
   const [ollamaUrl, setOllamaUrl] = useState<string>(() => {

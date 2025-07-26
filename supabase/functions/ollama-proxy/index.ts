@@ -112,7 +112,7 @@ serve(async (req) => {
     if (action === 'get_models') {
       console.log('Fetching available models');
       
-      const baseUrl = requestBody.baseUrl || 'https://super-adventure-6w5wvrqxvg4fxv6-11434.app.github.dev';
+      const baseUrl = requestBody.baseUrl || 'http://170.64.163.129:11434';
       
       try {
         const modelsResponse = await fetch(`${baseUrl}/api/tags`);
@@ -406,7 +406,7 @@ serve(async (req) => {
         );
       }
 
-      const baseUrl = requestBody.baseUrl || 'https://super-adventure-6w5wvrqxvg4fxv6-11434.app.github.dev';
+      const baseUrl = requestBody.baseUrl || 'http://170.64.163.129:11434';
       
       // Always use gemma3:4b for vision
       const visionModel = 'gemma3:4b';
@@ -562,7 +562,7 @@ serve(async (req) => {
       );
     }
 
-    const baseUrl = requestBody.baseUrl || 'https://super-adventure-6w5wvrqxvg4fxv6-11434.app.github.dev';
+    const baseUrl = requestBody.baseUrl || 'http://170.64.163.129:11434';
     
     console.log(`Making request to Ollama at: ${baseUrl}/api/chat`);
     
