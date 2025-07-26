@@ -1,0 +1,307 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Google-inspired color palette */
+    --background: 0 0% 100%;
+    --foreground: 213 20% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 213 20% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 20% 15%;
+
+    /* Google Blue inspired primary */
+    --primary: 215 100% 56%;
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 215 100% 96%;
+
+    /* Subtle grays */
+    --secondary: 210 17% 96%;
+    --secondary-foreground: 213 20% 25%;
+
+    --muted: 210 17% 96%;
+    --muted-foreground: 213 15% 50%;
+
+    --accent: 210 17% 94%;
+    --accent-foreground: 213 20% 25%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 92%;
+    --input: 210 20% 96%;
+    --ring: 215 100% 56%;
+
+    /* Chat-specific colors */
+    --chat-user: 215 100% 56%;
+    --chat-user-foreground: 0 0% 100%;
+    --chat-ai: 210 17% 96%;
+    --chat-ai-foreground: 213 20% 15%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(215 100% 56%), hsl(220 100% 62%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 17% 98%));
+
+    /* Shadows */
+    --shadow-soft: 0 1px 3px hsl(213 20% 15% / 0.1);
+    --shadow-medium: 0 4px 12px hsl(213 20% 15% / 0.1);
+    --shadow-large: 0 10px 30px hsl(213 20% 15% / 0.12);
+
+    /* Transitions */
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Dark theme colors */
+    --background: 213 20% 8%;
+    --foreground: 210 17% 95%;
+
+    --card: 213 20% 10%;
+    --card-foreground: 210 17% 95%;
+
+    --popover: 213 20% 10%;
+    --popover-foreground: 210 17% 95%;
+
+    /* Google Blue for dark mode */
+    --primary: 215 100% 62%;
+    --primary-foreground: 213 20% 8%;
+    --primary-soft: 215 100% 12%;
+
+    /* Dark grays */
+    --secondary: 213 20% 15%;
+    --secondary-foreground: 210 17% 85%;
+
+    --muted: 213 20% 12%;
+    --muted-foreground: 213 15% 65%;
+
+    --accent: 213 20% 15%;
+    --accent-foreground: 210 17% 85%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 17% 95%;
+
+    --border: 213 20% 18%;
+    --input: 213 20% 15%;
+    --ring: 215 100% 62%;
+
+    /* Chat-specific dark colors */
+    --chat-user: 215 100% 62%;
+    --chat-user-foreground: 213 20% 8%;
+    --chat-ai: 213 20% 12%;
+    --chat-ai-foreground: 210 17% 95%;
+
+    /* Dark gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(215 100% 62%), hsl(220 100% 68%));
+    --gradient-subtle: linear-gradient(180deg, hsl(213 20% 8%), hsl(213 20% 10%));
+
+    /* Dark shadows */
+    --shadow-soft: 0 1px 3px hsl(0 0% 0% / 0.3);
+    --shadow-medium: 0 4px 12px hsl(0 0% 0% / 0.4);
+    --shadow-large: 0 10px 30px hsl(0 0% 0% / 0.5);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* Prevent blur on mobile devices */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent input zoom on mobile */
+    -webkit-text-size-adjust: 100%;
+    /* Fix input focus issues on mobile */
+    touch-action: manipulation;
+  }
+
+  /* Fix textarea and input elements on mobile */
+  textarea, input {
+    /* Prevent zoom on focus in iOS */
+    font-size: 16px;
+    /* Improve rendering on mobile */
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+
+  /* Mobile-specific fixes */
+  @media (max-width: 768px) {
+    /* Prevent viewport changes on focus */
+    input, textarea, select {
+      font-size: 16px !important;
+      transform: translateZ(0);
+    }
+    
+    /* Fix blur issues on mobile */
+    * {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-perspective: 1000;
+      perspective: 1000;
+    }
+  }
+}
+
+@layer components {
+  /* Interactive hover effects */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  
+  .hover-lift {
+    @apply transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg;
+  }
+  
+  .hover-glow {
+    @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/25;
+  }
+  
+  .story-link {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+  
+  /* Enhanced chat animations */
+  .message-enter {
+    @apply animate-fade-in;
+  }
+  
+  .typing-dots {
+    @apply animate-pulse;
+  }
+  
+  /* Streaming text animation */
+  .stream-text {
+    @apply animate-stream-in;
+  }
+  
+  /* Enhanced thinking animations */
+  .bounce-in {
+    animation: bounce-in 0.6s ease-out;
+  }
+  
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  .shimmer-bg {
+    background: linear-gradient(90deg, transparent, hsl(var(--primary)/0.1), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+  
+  /* Button variants with animations */
+  .btn-animated {
+    @apply transition-all duration-200 transform hover:scale-105 active:scale-95;
+  }
+  
+  .btn-glow {
+    @apply hover:animate-pulse-glow;
+  }
+  
+  /* Loading states */
+  .skeleton-pulse {
+    @apply animate-pulse bg-gradient-to-r from-muted via-muted-foreground/10 to-muted;
+  }
+  
+  /* Sidebar animations */
+  .sidebar-slide {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  /* Card hover effects */
+  .card-interactive {
+    @apply transition-all duration-200 hover:shadow-md hover:scale-[1.02] hover:bg-accent/50;
+  }
+}
+
+/* Enhanced keyframe animations */
+@keyframes bounce-in {
+  0% { 
+    transform: scale(0) rotate(-180deg); 
+    opacity: 0; 
+  }
+  50% { 
+    transform: scale(1.1) rotate(-90deg); 
+    opacity: 0.8; 
+  }
+  100% { 
+    transform: scale(1) rotate(0deg); 
+    opacity: 1; 
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    opacity: 1; 
+    filter: brightness(1) drop-shadow(0 0 5px hsl(var(--primary)/0.3)); 
+  }
+  50% { 
+    opacity: 0.8; 
+    filter: brightness(1.2) drop-shadow(0 0 10px hsl(var(--primary)/0.5)); 
+  }
+}
+
+@keyframes stream-in {
+  0% { 
+    opacity: 0; 
+    transform: translateX(-10px) scale(0.95);
+    filter: blur(2px);
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateX(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes typing-wave {
+  0%, 20% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.1); }
+  80%, 100% { transform: translateY(0) scale(1); }
+}
+
+/* Enhanced typing dots animation */
+.typing-dots div {
+  animation: typing-wave 1.4s ease-in-out infinite;
+}
+
+.typing-dots div:nth-child(1) { animation-delay: -0.6s; }
+.typing-dots div:nth-child(2) { animation-delay: -0.4s; }
+.typing-dots div:nth-child(3) { animation-delay: -0.2s; }
+.typing-dots div:nth-child(4) { animation-delay: 0s; }
