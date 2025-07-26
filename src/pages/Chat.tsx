@@ -120,7 +120,7 @@ export const Chat = () => {
       }
 
       // Modified prompt for direct response without content filtering
-      const ragPrompt = `Berdasarkan konten lengkap dari website yang telah diunduh berikut, berikan jawaban informatif dan lengkap tentang topik teknis/teknologi yang ditanyakan. Anda adalah asisten AI yang membantu dengan pertanyaan teknis, programming, cybersecurity, dan teknologi. Nmap, penetration testing, dan tools keamanan adalah topik yang valid dan legal untuk dipelajari. Jawab dalam Bahasa Indonesia dengan informasi yang akurat dan mendidik.\n\n${combinedContent}\n--- PERTANYAAN PENGGUNA ---\n${query}\n\nBerikan jawaban yang informatif dan lengkap berdasarkan konten website yang telah diunduh:`;
+      const ragPrompt = `Berdasarkan konten lengkap dari website yang telah diunduh berikut. Jawab  dengan informasi yang akurat \n\n${combinedContent}\n--- PERTANYAAN PENGGUNA ---\n${query}\n\nBerikan jawaban yang informatif dan lengkap berdasarkan konten website yang telah diunduh:`;
 
       console.log('🤖 Using model for RAG:', selectedModel);
       console.log(`📊 Combined content length: ${combinedContent.length} characters`);
@@ -196,7 +196,7 @@ export const Chat = () => {
       const webContent = webData.content;
       
       // Create RAG prompt for web content analysis
-      const ragPrompt = `Berdasarkan konten website berikut, jawab pertanyaan pengguna secara langsung dan detail. Jawab dalam Bahasa Indonesia.\n\n--- KONTEN WEBSITE ---\n${webContent}\n\n--- PERTANYAAN PENGGUNA ---\n${query}\n\nJawab berdasarkan konten website:`;
+      const ragPrompt = `Berdasarkan konten website berikut, jawab pertanyaan pengguna secara langsung.\n\n--- KONTEN WEBSITE ---\n${webContent}\n\n--- PERTANYAAN PENGGUNA ---\n${query}\n\nJawab berdasarkan konten website:`;
 
       console.log('🤖 Using model for Web RAG:', selectedModel);
       
