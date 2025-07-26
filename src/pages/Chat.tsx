@@ -98,7 +98,7 @@ export const Chat = () => {
       let successfulSources: string[] = [];
 
       // Download content from top 3 websites
-      const topUrls = searchUrls.slice(0, 3);
+      const topUrls = searchUrls.slice(0, 1);
       
       for (let i = 0; i < topUrls.length; i++) {
         const url = topUrls[i];

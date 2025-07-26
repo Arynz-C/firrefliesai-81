@@ -46,7 +46,7 @@ export async function searchDuckDuckGo(query: string): Promise<string[]> {
     });
     
     console.log('🔗 Found URLs:', results);
-    return results.slice(0, 3); // Return top 3 results
+    return results.slice(0, 1); // Return top 3 results
   } catch (error) {
     console.error('❌ Error searching DuckDuckGo:', error);
     return [];

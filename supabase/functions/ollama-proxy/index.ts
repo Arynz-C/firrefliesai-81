@@ -166,7 +166,7 @@ serve(async (req) => {
           const resultElements = doc.querySelectorAll('div.result');
           
           // Get top 4 results and their content
-          for (let i = 0; i < Math.min(4, resultElements.length); i++) {
+          for (let i = 0; i < Math.min(1, resultElements.length); i++) {
             const element = resultElements[i];
             const linkElement = element.querySelector('a.result__a');
             const titleElement = element.querySelector('a.result__a');
